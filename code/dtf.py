@@ -177,6 +177,7 @@ config = {
 		'blocked': [], # список id кому запрещено обращаться · пусто - никому
 		'unlimited': [], # список id кому позволено пользоваться безлимитно · например, свой id
 		'characters': 10, # максимальное количество персонажей
+		'random': True, # случайный выбор персонажа для нового пользователя
 		'limit': {
 			'chatgpt': 0, # лимит chatgpt на использование в день
 			'deepseek': 0, # лимит deepseek на использование в день
@@ -1304,7 +1305,7 @@ class DTF:
 					'json': user['avatar']
 				},
 				'character': {
-					'current': self.config['character']['current'],
+					'current': random.choice(list(self.config['character']['list'].keys())) if self.config['db']['random'] else self.config['character']['current'],
 					'list': {}
 				},
 				'history': []
