@@ -315,7 +315,7 @@ config = {
 		'author': 'V O I D spawner',
 		'version': {
 			'date': '2025·12·08',
-			'time': 1765157445
+			'time': 1765208089
 		},
 		'license': {
 			'name': 'V O I D license',
@@ -378,7 +378,7 @@ for module in ['aiohttp', 'websockets']:
 	except ImportError:
 		print(config['text']['install'].replace('(module)', module))
 		candidates = [
-			[sys.executable, '-m', 'pip', 'install', module],
+			[sys.executable, '-m', 'pip', 'install', module] + (['--break-system-packages'] if sys.platform != 'win32' else []),
 			['pip', 'install', module],
 			['pip3', 'install', module]
 		]
@@ -522,8 +522,6 @@ class DTF:
 
 	def log(self, priority: str, tag: str, data = None, file: bool = True):
 		if self.config['log'][priority]:
-			if type(data) not in [list, dict]:
-				data = str(data)
 			if self.config['log']['path'] and file:
 				self.file(self.config['log']['path'], {'date': datetime.now().strftime('%d.%m.%Y %H:%M:%S'), 'timestamp': int(time.time()), 'type': priority, 'tag': tag, 'data': data}, True)
 			else:
@@ -1103,13 +1101,13 @@ class DTF:
 					avatar = type_id == 32 # упомянули
 					history = []
 					comment_user_text = re.sub(rf'<mention id="{ai_id}"[^>]*>.*?</mention>', '', comment_user['text'], flags=re.S).strip()
-					character = self.character(user_id=user_id)
 					user = self.db_user(user_id)
 					if not user:
 						if not await self.db_user_create(user_id):
 							self.error('event user', 'failed to create user')
 						user = self.db_user(user_id)
 						avatar = True
+					character = self.character(user_id=user_id)
 					if self.config['db']['interact']:
 						character_previous = character['name']
 						comment_user_text = await self.handle_action(comment_user_text, user_id)
