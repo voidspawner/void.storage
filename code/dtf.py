@@ -179,9 +179,9 @@ config = {
 		'characters': 10, # максимальное количество персонажей
 		'random': True, # случайный выбор персонажа для нового пользователя
 		'limit': {
-			'chatgpt': 0, # лимит chatgpt на использование в день
-			'deepseek': 0, # лимит deepseek на использование в день
-			'ollama': 0 # лимит ollama на использование в день
+			'chatgpt': None, # лимит chatgpt на использование в день · None - без лимита, 0 - не используется
+			'deepseek': None, # лимит deepseek на использование в день · None - без лимита, 0 - не используется
+			'ollama': None # лимит ollama на использование в день · None - без лимита, 0 - не используется
 		},
 		'counter': {
 			'chatgpt': 0, # счётчик использования chatgpt в день
@@ -263,12 +263,12 @@ config = {
 			'D T F   A P I   ·   C H A R A C T E R   B O T   ·   C H A T',
 			'',
 			'использование',
-			'  1. добавь свои email и пароль, описание своего персонажа и ключ нейронки в файле dtf.py',
+			'  1. добавь email и пароль, описание своего персонажа и ключ нейронки в файле dtf.py',
 			'  2. установи python, если его нет, с официального сайта https://python.org/downloads',
 			'  3. запусти скрипт из командной строки или терминала',
 			'     python dtf.py  · windows',
 			'     python3 dtf.py · mac и linux',
-			'  4. на dtf.ru в комменте упомяни себя "@имя", нужно выбрать себя из меню, иначе не сработает упоминание',
+			'  4. на dtf.ru в комменте упомяни персонажа "@имя", нужно выбрать его из меню, иначе не сработает упоминание',
 			'  5. теперь у тебя есть свой маленький ИИ помощник ( `з｀)ﾉ⌒♥',
 			'',
 			'дополнительно',
@@ -308,14 +308,14 @@ config = {
 			'  или укажи в настройках token обновления',
 			'  иначе будет ошибка слишком частого использования',
 			'  не распространяется на общение с персонажем в терминале',
-			'',
+			''
 		]
 	},
 	'about': {
 		'author': 'V O I D spawner',
 		'version': {
-			'date': '2025·12·06',
-			'time': 1765042378
+			'date': '2025·12·08',
+			'time': 1765157445
 		},
 		'license': {
 			'name': 'V O I D license',
@@ -362,6 +362,7 @@ import sys
 import time
 import json
 import shutil
+import random
 import base64
 import asyncio
 import tempfile
@@ -1102,8 +1103,14 @@ class DTF:
 					avatar = type_id == 32 # упомянули
 					history = []
 					comment_user_text = re.sub(rf'<mention id="{ai_id}"[^>]*>.*?</mention>', '', comment_user['text'], flags=re.S).strip()
+					character = self.character(user_id=user_id)
+					user = self.db_user(user_id)
+					if not user:
+						if not await self.db_user_create(user_id):
+							self.error('event user', 'failed to create user')
+						user = self.db_user(user_id)
+						avatar = True
 					if self.config['db']['interact']:
-						character = self.character(user_id=user_id)
 						character_previous = character['name']
 						comment_user_text = await self.handle_action(comment_user_text, user_id)
 						if type(comment_user_text) is dict:
@@ -1167,16 +1174,17 @@ class DTF:
 				user_text = data['message']['text']
 				user_id = int(data['channelId'])
 				self.debug('event user', {'text': user_text, 'user_id': user_id})
+				avatar = False
 				user = self.db_user(user_id)
 				if not user:
 					if not await self.db_user_create(user_id):
 						self.error('event user', 'failed to create user')
 						return await self.user_send(user_id, self.character()['text']['fail'])
 					user = self.db_user(user_id)
+					avatar = True
 				character = self.character(user_id=user_id)
 				history = user['history']
 				character_previous = character['name']
-				avatar = False
 				user_text = await self.handle_action(user_text, user_id)
 				if type(user_text) is dict:
 					match user_text['type']:
@@ -1305,7 +1313,7 @@ class DTF:
 					'json': user['avatar']
 				},
 				'character': {
-					'current': random.choice(list(self.config['character']['list'].keys())) if self.config['db']['random'] else self.config['character']['current'],
+					'current': random.choice([name for name in self.config['character']['list'] if name != 'default']) if self.config['db']['random'] else self.config['character']['current'],
 					'list': {}
 				},
 				'history': []
