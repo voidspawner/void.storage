@@ -6,8 +6,7 @@ scope: source.void
 
 contexts:
   main:
-    - match: >
-        ^\t*(['"])(.*?)(['"]:)(.*?)(,?)$
+    - match: ^\t*(['"])(.*?)(['"]:)(.*?)(,?)$
       captures:
         1: punctuation.definition.string.void
         2: string.void
@@ -28,19 +27,18 @@ contexts:
         1: string.void
         2: punctuation.definition.comment.void
 
-    - match: >
-        ^\t*.?[ ]?[+-]?[0-9][0-9_., "']*?[%]?( \w*)?$
+    - match: ^\t*.?[ ]?[+-]?[0-9][0-9_., "']*?[%]?( \w*)?$
       scope: constant.numeric.void
 
-    - match: '^\t*(http[s]?://.*?$)'
+    - match: '^\t*(https?://[^\s]+)'
       captures:
         1: markup.underline.link.void
 
-    - match: '^\t*([0-9a-zA-Z-_]+@[0-9a-zA-Z-_.]+$)'
+    - match: '^\t*([0-9a-zA-Z-_]+@[0-9a-zA-Z-_.]+(?=\s|$))'
       captures:
         1: markup.underline.link.void
 
-    - match: '^\t*(\+[0-9- \(\)]{5,}$)'
+    - match: '^\t*(\+[0-9-\(\)]{4,}[0-9\(\)])(?=\s|$)'
       captures:
         1: markup.underline.link.void
 
@@ -50,16 +48,13 @@ contexts:
     - match: '^\t*(?:none)$'
       scope: constant.language.null.void
 
-    - match: >
-        ^(?:(\t){2})*[^\t"'\[].*?$
+    - match: ^(?:(\t){2})*[^\t"'\[].*?$
       scope: variable.void.odd
 
-    - match: >
-        ^\t(?:(\t){2})*[^\t"'\[].*?$
+    - match: ^\t(?:(\t){2})*[^\t"'\[].*?$
       scope: variable.void.even
 
-    - match: >
-        ^\t*[^"'\[].*?$
+    - match: ^\t*[^"'\[].*?$
       scope: variable.void.odd
 
   quoted_text:
